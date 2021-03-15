@@ -1,61 +1,64 @@
 import React, { useEffect, useState } from 'react';
-import { Subject, interval, merge, empty, NEVER } from 'rxjs'
-import { debounceTime, map, mapTo, scan, startWith, switchMap, tap } from 'rxjs/operators'
+import { Observable, BehaviorSubject } from 'rxjs'
+import { debounceTime, distinctUntilChanged, switchMap, tap, throttleTime } from 'rxjs/operators'
+import styled from 'styled-components'
+const Container = styled.div`
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+`
+const fetchUser = (username) => new Observable(async (observer) => {
+  try {
+    const response = (await fetch(`http://localhost:5000/github/${username}`))
+    if (response.status === 200) {
+      observer.next(await response.json())
+      observer.complete()
+    }else {
+      observer.error(await response.text())
+      observer.complete()
+    }
 
-const subjectPlay = new Subject().pipe(mapTo({ count: true }))
-const subjectPause = new Subject().pipe(mapTo({ count: false }))
-const subjectSpeed = new Subject().pipe(
-  map((speed) => ({ speed: +speed })),
-)
+  } catch (error) {
+    observer.error(error)
+    observer.complete()
+  }
+})
 
-const subjectIncrease = new Subject().pipe(
-  map((increase) => ({ increase: +increase })),
-)
-
-const clock = interval(1000).pipe(mapTo(-1))
-
-
-
+const usernameObs = new BehaviorSubject("jetobe95")
 
 function App() {
   const [state, setState] = useState({})
-
-
-
   useEffect(() => {
-
-    const counter = merge(subjectPlay, subjectPause, subjectSpeed,subjectIncrease)
-      .pipe(
-        startWith({
-          value: 0,
-          increase: 1,
-          speed: 1000,
-          count: false,
-          countup: true
-        }),
-        tap(_ => setState((oldState) => ({ ...oldState, ...state }))),
-        scan((state, curr) => ({ ...state, ...curr }), {}),
-        switchMap(state => state.count ? interval(state.speed).pipe(
-          tap(_ => state.value += state.countup ? state.increase : -state.increase),
-          tap(_ => setState((oldState) => ({ ...oldState, ...state })))
-        ) : NEVER),
-      )
-
-    counter.subscribe(console.log)
-
-
+    usernameObs.pipe(
+      debounceTime(1000),
+      switchMap((username) => fetchUser(username)),
+      tap(userResponse=> setState({ user: userResponse }),()=>console.log('error')),
+      tap((e)=>console.log('error',e))
+    )
+    .subscribe()
+    
   }, [])
+  const {
+    avatar_url,
+    bio,
+    login,
+    message,
+  } = state.user ?? {}
   return (
-    <div>
-      <h1>RxJS</h1>
-      <h1>{state?.value}</h1>
-      <input type="number" onChange={({ target: { value } }) => subjectSpeed.next(value)} />
-      <input type="number" onChange={({ target: { value } }) => subjectIncrease.next(value)} />
-      <button onClick={() => subjectPlay.next()}>{!state?.count ?  "EMPEZAR":"CONTINUAR"}</button>
-      <button onClick={() => subjectPause.next()}>PAUSAR</button>
-      <br/>
-      <code>{JSON.stringify(state,null,4)}</code>
-    </div>
+    <Container className="container">
+      <input  onChange={(e) => usernameObs.next(e.target.value)} className="form-control mb-4" placeholder="Github Username" />
+      <h6>{message}</h6>
+      <div className="card" style={{ width: '18rem' }}>
+        <img src={avatar_url} className="card-img-top" alt="..." />
+        <div className="card-body">
+          <h5 className="card-title">@{login}</h5>
+          <p className="card-text">{bio}</p>
+        </div>
+      </div>
+
+    </Container>
   );
 }
 

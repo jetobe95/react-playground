@@ -1,10 +1,14 @@
 const express = require('express')
 const app = express()
+const cors =  require('cors')
 const { default: axios } = require('axios')
 
 app.listen(5000, () => console.log('Server on port 5000'))
 
-
+app.use(cors({
+    origin:'http://localhost:3000',
+    optionsSuccessStatus: 200 
+}))
 
 const redis = require("redis");
 const client = redis.createClient();
@@ -24,11 +28,12 @@ app.get('/github/:user', async (req, res) => {
             try {
                 const { data } = await axios(`https://api.github.com/users/${user}`)
                 const dataStr = JSON.stringify(data)
-                client.set(user, dataStr,'EX',60); // En segundos
+                console.log(data);
+                client.set(user, dataStr,'EX',60 *  2); // En segundos
                 res.send(data)
                 
             } catch (error) {
-                res.send(error)
+                res.json(error.response.data)
             }
 
         }
