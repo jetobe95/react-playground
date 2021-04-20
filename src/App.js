@@ -1,23 +1,23 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { useSelector, useDispatch } from 'react-redux';
 
+
+import './App.css';
+import Navbar from './Navbar';
 function App() {
+  const dispatch = useDispatch()
+  const counterState = useSelector(state => state)
   return (
     <div className="App">
+      <Navbar />
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
         <p>
-          Edit <code>src/App.js</code> and save to reload.
+          {counterState}
         </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <div>
+          <button className='btn btn-primary m-2' onClick={() => dispatch({ type: 'INCREMENT' })}>{"+"}</button>
+          <button className='btn btn-danger' onClick={() => dispatch({ type: 'DECREMENT' })}>{"-"}</button>
+        </div>
       </header>
     </div>
   );
