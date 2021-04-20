@@ -8,12 +8,12 @@ function App() {
   const dispatch = useDispatch()
   const counterState = useSelector(state => state)
   return (
-    <div className="App">
+    <div className="App" >
       <Navbar />
       <header className="App-header">
         <p>
-          Contador <br/>
-          {counterState}
+          Contador <br />
+          {counterState.toString().padStart(2,'0')}
         </p>
         <div>
           <button
@@ -32,7 +32,28 @@ function App() {
             className='btn btn-danger' onClick={() => dispatch({ type: 'INCREMENT_AUTO' })}>{"+ Auto"}</button>
           <button
             className='btn btn-secondary m-1' onClick={() => dispatch({ type: 'INCREMENT_AUTO_STOP' })}>{"+ Auto STOP"}</button>
+
+          <button
+            className='btn btn-danger m-1'
+            onMouseUp={() => dispatch({ type: 'INCREMENT_KEY_UP' })}
+            onMouseDown={() => dispatch({ type: 'INCREMENT_KEY_DOWN' })}
+          >
+            {"+ Mantener Presionado"}
+          </button>
         </div>
+
+        <h5 className="mt-4">Funciones escondidas</h5>
+        <div>
+          <button
+            className='btn btn-secondary m-1'
+            onMouseDown={() => dispatch({ type: 'FN_OCULTA_1' })}
+            onMouseUp={() => dispatch({ type: 'FN_OCULTA_1_M_UP' })}
+          >
+            {"Presiona por 2 segundos, para reiniciar"}
+          </button>
+        </div>
+
+
       </header>
     </div>
   );
